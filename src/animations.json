@@ -1,0 +1,34 @@
+{
+  "idle": {
+    "animation": "blend",
+    "brightness": 25,
+    "interval": 60,
+    "color": "00FFFF",
+    "secondaryColor": "000000"
+  },
+  "connection": {
+    "animation": "blend",
+    "brightness": 20,
+    "interval": 10,
+    "color": "00FF11",
+    "secondaryColor": "000000"
+  },
+  "error": {
+    "animation": "flash",
+    "interval": 700,
+    "brightness": 10,
+    "color": "FF0000"
+  },
+  "stop": {
+    "animation": "solid",
+    "interval": 1000,
+    "brightness": 10,
+    "color": "00FF11"
+  },
+  "drive": {
+    "animation": "scan",
+    "interval": 30,
+    "brightness": 10,
+    "color": "00FF11"
+  }
+}

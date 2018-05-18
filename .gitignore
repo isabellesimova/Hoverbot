@@ -1,0 +1,12 @@
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+tts.mp3
+
+# Dependency directories
+node_modules/
+
+# Build directories
+build/

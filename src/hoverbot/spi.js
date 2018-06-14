@@ -8,7 +8,7 @@ module.exports = class spiInterface extends EventEmitter {
     super();
     this.name = 'SPI';
     // Use optional config parameters if provided, otherwise use defaults
-    this.sonarInterval = 'sonarInterval' in config ? config.sonarInterval : 300;
+    this.sonarInterval = config.sonarInterval ? config.sonarInterval : 300;
     // Initialize
     this.hasSPI = true;
     try {
@@ -98,7 +98,7 @@ module.exports = class spiInterface extends EventEmitter {
     this.emit('sonar', data);
   }
 
-  spoof() {
+  mock() {
     setInterval(() => {
       const data = {
         left: Math.floor(Math.random() * 30),

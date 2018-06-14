@@ -8,7 +8,7 @@ const spawn = require('child_process').spawn;
 const WebSocket = require('ws');
 
 // Require custom hoverbot
-const hoverbot = require('./customHoverbot.js');
+const hoverbot = require('./myHoverbot.js');
 
 // Port to serve UI
 const PORT = 8000;
@@ -27,8 +27,8 @@ const app = express();
 // Grab and parse any command line args
 const args = process.argv.slice(2);
 args.forEach((arg) => {
-  if (arg === 'spoof') {
-    hoverbot.spoof();
+  if (arg === 'mock') {
+    hoverbot.mock();
   }
   if (arg in logger.levels) {
     logger.level = arg;
@@ -40,12 +40,23 @@ app.use(express.static(path.join(__dirname, 'app')));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'app/index.html'));
 });
+
+// Serve audio stream
+app.get('/stream.wav', (req, res) => {
+  res.set({
+    'Content-Type': 'audio/wav',
+    'Transfer-Encoding': 'chunked',
+  });
+  hoverbot.audio.getMicStream().pipe(res);
+});
+
+// Init http server
 const server = http.createServer(app);
 server.listen(PORT, () => {
   logger.info('[Server] Listening on %d', server.address().port);
 });
 
-// Serve video/image stream
+// Launch webcam video server
 if (os.platform() === 'linux') {
   if (fs.existsSync(VIDEO_SERVER)) {
     const catVideo = spawn(VIDEO_SERVER);
@@ -64,15 +75,6 @@ if (os.platform() === 'linux') {
 } else {
   logger.info('[Server] Video streaming currently only supported on linux');
 }
-
-// Serve audio stream
-app.get('/stream.wav', (req, res) => {
-  res.set({
-    'Content-Type': 'audio/wav',
-    'Transfer-Encoding': 'chunked',
-  });
-  hoverbot.audio.getMicStream().pipe(res);
-});
 
 // Init websocket server
 const wss = new WebSocket.Server({ server });
@@ -103,7 +105,7 @@ wss.on('connection', (ws) => {
   ws.on('message', (message) => {
     if (ws.accessId === connectedClientId) {
       logger.debug(`[Server] Handle client message: ${message}`);
-      hoverbot.parse(message);
+      hoverbot.handleMessage(message);
     }
   });
 
@@ -116,7 +118,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Broadcast hoverbot messages via websocket server to every connected client
+// Hoverbot broadcast event listener, forwards messages via websocket to clients
 hoverbot.on('broadcast', (message) => {
   if (wss.clients.size !== 0) {
     logger.debug(`[Server] Websocket broadcast: ${JSON.stringify(message)}`);

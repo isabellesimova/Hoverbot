@@ -32,7 +32,7 @@
           <span class="navbar-item">{{ this.name }}</span>
         </div>
         <div class="navbar-end">
-          <span class="navbar-item"><battery-tile title="Battery" :data="motorData"/></span>
+          <span class="navbar-item"><battery-tile title="Battery" :status="motorStatus"/></span>
         </div>
       </nav>
       <div class="tile is-ancestor" style="margin: 10px">
@@ -44,7 +44,7 @@
               </article>
             </div>
             <div class="tile is-parent is-vertical">
-              <article class="tile is-child notification"><dpad-tile title="Teleop" :drive="drive" :teleop="teleop" :response="connectionResponse"/></article>
+              <article class="tile is-child notification"><dpad-tile title="Teleop" :send="send" :teleop="teleop" :heartbeat="heartbeat" :response="connectionResponse"/></article>
               <article class="tile is-child notification"><audio-tile title="Audio" :src="audioSrc" :send="send" :stream="audioStream"/></article>
             </div>
           </div>
@@ -53,9 +53,9 @@
           </div>
         </div>
         <div class="tile is-parent is-vertical">
-          <article class="tile is-child notification"><status-tile title="Motor Status" :data="motorData"/></article>
+          <article class="tile is-child notification"><status-tile title="Motor Status" :status="motorStatus"/></article>
           <article class="tile is-child notification"><proximity-tile title="Proximity" :data="proximityData"/></article>
-          <article class="tile is-child notification"><lightring-tile title="Lightring" :send="send"/></article>
+          <article class="tile is-child notification"><lightring-tile title="Lightring" :connected="connected" :config="lightringConfig" :send="send"/></article>
         </div>
       </div>
     </div>

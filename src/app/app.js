@@ -5,11 +5,7 @@ new Vue({ // eslint-disable-line no-new
       connected: false,
       ws: null,
       name: '',
-      heartbeatInterval: 450,
-      heartbeat: {
-        topic: 'stop',
-        data: {},
-      },
+      heartbeat: 450,
       audioStream: {
         active: false,
       },
@@ -17,9 +13,10 @@ new Vue({ // eslint-disable-line no-new
       cameraSrc: `http://${window.location.hostname}:8080/`,
       message: {},
       teleop: false,
+      lightringConfig: {},
       connectionResponse: false,
       proximityData: {},
-      motorData: {},
+      motorStatus: {},
       style: {
         fontFamily: ['Avenir', 'Helvetica', 'Arial', 'sans-serif'],
       },
@@ -39,41 +36,25 @@ new Vue({ // eslint-disable-line no-new
         this.message = JSON.parse(event.data);
         const topic = this.message.topic;
         const data = this.message.data;
-        if (topic === 'sonar') {
-          this.proximityData = data;
-        }
-        if (topic === 'motors') {
-          this.motorData = data;
-        }
-        if (topic === 'connection') {
-          this.connectionResponse = true;
-          if ('teleop' in data) {
-            this.teleop = data.teleop;
-          }
-          if ('name' in data) {
-            this.name = data.name;
-            document.title = this.name;
-          }
-          if ('hasAudio' in data) {
-            this.audioStream.active = data.hasAudio;
-          }
-        }
+        if (topic === 'sonar') this.proximityData = data;
+        if (topic === 'motors') this.motorStatus = data;
+        if (topic === 'connection') this.onConnectionResponse(data);
       } catch (e) {
         // Catch bad JSON formatting errors and log to console for debugging
         console.error(e); // eslint-disable-line no-console
       }
     };
-    // Start client <-> robot hearbeat loop
-    setInterval(() => {
-      if (this.connected) {
-        this.send(this.heartbeat.topic, this.heartbeat.data);
-      }
-    }, this.heartbeatInterval);
   },
   methods: {
-    drive(topic, data) {
-      this.heartbeat = { topic, data };
-      this.send(topic, data);
+    onConnectionResponse(data) {
+      this.connectionResponse = true;
+      if (data.teleop) this.teleop = data.teleop;
+      if (data.lightringConfig) this.lightringConfig = data.lightringConfig;
+      if (typeof data.hasAudio === 'boolean') this.audioStream.active = data.hasAudio;
+      if (data.name) {
+        this.name = data.name;
+        document.title = this.name;
+      }
     },
     send(topic, data) {
       if (this.ws.readyState === this.ws.OPEN) {

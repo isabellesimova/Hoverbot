@@ -21,6 +21,8 @@
   ],
   "author": "Isabelle Simova <isabelle.simova@gmail.com>",
   "license": "MIT",
+  "repository": "https://github.com/isabellesimova/Hoverbot",
+  "homepage": "https://hackaday.io/project/158256-hoverbot",
   "dependencies": {
     "express": "^4.16.3",
     "hex-to-binary": "^1.0.1",
@@ -51,6 +53,18 @@
       "Vue": true
     },
     "rules": {
+      "object-curly-newline": [
+        "error",
+        {
+          "consistent": true
+        }
+      ],
+      "no-underscore-dangle": [
+        2,
+        {
+          "allowAfterThis": true
+        }
+      ],
       "no-param-reassign": [
         2,
         {

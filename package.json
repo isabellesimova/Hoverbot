@@ -30,7 +30,6 @@
     "pi-spi": "^1.0.2",
     "play-sound": "^1.1.2",
     "serialport": "^6.1.1",
-    "simple-tts": "^0.1.3",
     "winston": "2.4.1",
     "ws": "^5.0.0"
   },

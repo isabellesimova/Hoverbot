@@ -1,6 +1,6 @@
 const Player = require('play-sound');
 const Mic = require('mic');
-const speak = require('simple-tts');
+// const speak = require('simple-tts');
 const logger = require('winston');
 
 module.exports = class Audio {
@@ -21,7 +21,7 @@ module.exports = class Audio {
   tts(text) {
     if (text) {
       // TODO: determine if we can use the streaming interface rather than create mp3s
-      speak(text, { lang: 'en', format: 'mp3', filename: 'tts' });
+      // speak(text, { lang: 'en', format: 'mp3', filename: 'tts' });
       const audio = this.player.play('tts.mp3', (err) => {
         if (err) {
           logger.error(err);

@@ -1,7 +1,7 @@
 Vue.component('battery-tile', {
   props: {
     title: String,
-    data: Object,
+    status: Object,
   },
   data() {
     return {
@@ -13,10 +13,9 @@ Vue.component('battery-tile', {
     };
   },
   watch: {
-    data() {
-      // eslint-disable-next-line no-bitwise, no-mixed-operators
-      this.charging = this.data.status >> 5 & 1;
-      this.curV = this.data.voltage;
+    status() {
+      if (this.status.charging) this.charging = this.status.charging.code;
+      if (this.status.battery) this.curV = this.status.battery.voltage;
       this.curPercent = Math.round(100 * ((this.curV - this.minV) / (this.maxV - this.minV)));
       if (this.curV < this.minV) {
         this.curPercent = 0;

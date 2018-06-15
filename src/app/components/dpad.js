@@ -1,9 +1,13 @@
 Vue.component('dpad-tile', {
   props: {
     title: String,
-    drive: {
+    send: {
       type: Function,
       required: true,
+    },
+    heartbeat: {
+      type: Number,
+      default: 450,
     },
     teleop: Boolean,
     response: Boolean,
@@ -53,25 +57,57 @@ Vue.component('dpad-tile', {
       }
     });
   },
+  mounted() {
+    // Bind all relevent touch event listeners to each dpad button
+    this.addTouchListeners(this.$refs.up, 'ArrowUp');
+    this.addTouchListeners(this.$refs.left, 'ArrowLeft');
+    this.addTouchListeners(this.$refs.right, 'ArrowRight');
+    this.addTouchListeners(this.$refs.down, 'ArrowDown');
+  },
   methods: {
+    addTouchListeners(element, value) {
+      element.addEventListener('touchstart', (e) => { this.onTouchStart(e, value); }, false);
+      element.addEventListener('touchend', (e) => { this.onTouchEnd(e, value); }, false);
+      element.addEventListener('touchcancel', (e) => { this.onTouchEnd(e, value); }, false);
+    },
+    onTouchStart(event, value) {
+      // Do not interpret single touch as a click
+      event.preventDefault();
+      this.onDpad(value);
+    },
+    onTouchEnd(event, value) {
+      // Do not interpret single touch as a click
+      event.preventDefault();
+      this.onRelease(value);
+    },
+    drive() {
+      // Clear the interval in case it was not stopped
+      clearInterval(this.driveHearbeat);
+      // Send the first message and start the drive heartbeat
+      this.send('dpad', this.driveMessage);
+      this.driveHearbeat = setInterval(() => {
+        this.send('dpad', this.driveMessage);
+      }, this.heartbeat);
+    },
     onDpad(key) {
       if (!(key in this.driveMessage)) return;
-      // If the key is not yet marked as fired, update the drive message and fire the drive event
-      if (!this.driveMessage[key]) {
-        this.driveMessage[key] = true;
-        this.drive('dpad', this.driveMessage);
-      }
+      // If it was previously inactive, set start flag
+      const start = !this.isActive;
+      // If the key is not yet fired, update the drive message
+      if (!this.driveMessage[key]) this.driveMessage[key] = true;
+      // With the updated drive message, start the drive heartbeat
+      if (start) this.drive();
     },
     onRelease(key) {
       if (!(key in this.driveMessage)) return;
+      // Log the previous active status
+      const wasActive = this.isActive;
       // Update the drive message
       this.driveMessage[key] = false;
-      // If the dpad is still active, send the updated drive message
-      // Otherwise, send the stop message
-      if (this.isActive) {
-        this.drive('dpad', this.driveMessage);
-      } else {
-        this.drive('stop', {});
+      // If the dpad went from active to inactive, stop heartbeat loop and send stop message
+      if (!this.isActive && wasActive) {
+        clearInterval(this.driveHearbeat);
+        this.send('stop', {});
       }
     },
   },
@@ -85,33 +121,25 @@ Vue.component('dpad-tile', {
     <div class="columns">
       <div id="dpad-container" class="column">
           <div>
-              <button ref="up" class="button circle-button is-primary" @mousedown="onDpad('ArrowUp')" @mouseup="onRelease('ArrowUp')" style="margin: 10px">
-                  <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 0h24v24H0V0z" fill="none"/>
-                      <path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/>
-                  </svg>
+              <button ref="up" class="button circle-button is-primary" style="margin: 10px" v-bind:class="{ 'is-active' : this.driveMessage.ArrowUp }"
+                @mousedown="onDpad('ArrowUp')" @mouseup="onRelease('ArrowUp')" @mouseleave="onRelease('ArrowUp')">
+                <span class="icon"><i class="fas fa-arrow-up"></i></span>
               </button>
           </div>
           <div>
-              <button ref="left" class="button circle-button is-primary" @mousedown="onDpad('ArrowLeft')" @mouseup="onRelease('ArrowLeft')" style="margin-right: 25px">
-                  <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 0h24v24H0z" fill="none"/>
-                      <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                  </svg>
+              <button ref="left" class="button circle-button is-primary" style="margin-right: 25px" v-bind:class="{ 'is-active' : this.driveMessage.ArrowLeft }"
+                @mousedown="onDpad('ArrowLeft')" @mouseup="onRelease('ArrowLeft')" @mouseleave="onRelease('ArrowLeft')">
+                <span class="icon"><i class="fas fa-arrow-left"></i></span>
               </button>
-              <button ref="right" class="button circle-button is-primary" @mousedown="onDpad('ArrowRight')" @mouseup="onRelease('ArrowRight')" style="margin-left: 25px">
-                  <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 0h24v24H0z" fill="none"/>
-                      <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
-                  </svg>
+              <button ref="right" class="button circle-button is-primary" style="margin-left: 25px" v-bind:class="{ 'is-active' : this.driveMessage.ArrowRight }"
+                @mousedown="onDpad('ArrowRight')" @mouseup="onRelease('ArrowRight')" @mouseleave="onRelease('ArrowRight')">
+                <span class="icon"><i class="fas fa-arrow-right"></i></span>
               </button>
           </div>
           <div>
-              <button ref="down" class="button circle-button is-primary" @mousedown="onDpad('ArrowDown')" @mouseup="onRelease('ArrowDown')" style="margin: 10px">
-                <svg fill="#FFFFFF" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 0h24v24H0V0z" fill="none"/>
-                    <path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/>
-                </svg>
+              <button ref="down" class="button circle-button is-primary" style="margin: 10px" v-bind:class="{ 'is-active' : this.driveMessage.ArrowDown }"
+                @mousedown="onDpad('ArrowDown')" @mouseup="onRelease('ArrowDown')" @mouseleave="onRelease('ArrowDown')">
+                <span class="icon"><i class="fas fa-arrow-down"></i></span>
               </button>
           </div>
 
